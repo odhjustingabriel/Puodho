@@ -16,19 +16,51 @@
         <a href="{% url 'home' %}">Home</a>
         <a href="{% url 'products' %}">Products</a>
         <a href="{% url 'order_assistant' %}">Order</a>
-        <a href="{% url 'about' %}">About</a>
+        <a href="{% url 'about' %}">About Us</a>
         <a href="{% url 'contact' %}">Contact</a>
       </div>
     </nav>
   </header>
-  {% if messages %}<div class="messages container">{% for message in messages %}<div class="message">{{ message }}</div>{% endfor %}</div>{% endif %}
+
+  {% if messages %}
+    <div class="messages container">
+      {% for message in messages %}<div class="message">{{ message }}</div>{% endfor %}
+    </div>
+  {% endif %}
+
   <main>{% block content %}{% endblock %}</main>
+
   <footer class="footer">
-    <div class="container footer-grid">
-      <div><strong>Puodho</strong><p>Fresh poultry and farm produce, ordered directly from the farm.</p></div>
-      <div><p>Delivery and availability are subject to confirmation.</p><a href="{% url 'dashboard_home' %}">Admin dashboard</a></div>
+    <div class="container footer-main">
+      <div class="footer-brand">
+        <a class="brand footer-logo" href="{% url 'home' %}"><span class="brand-mark">P</span><span>Puodho</span></a>
+        <p>Fresh poultry and farm produce, ordered directly from a rural farm that values trust, freshness, and personal confirmation.</p>
+      </div>
+      <div class="footer-column">
+        <h3>Explore</h3>
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'products' %}">Products</a>
+        <a href="{% url 'order_assistant' %}">Place an Order</a>
+        <a href="{% url 'about' %}">About Us</a>
+      </div>
+      <div class="footer-column">
+        <h3>Contact</h3>
+        <p>Phone: +254 700 000 000</p>
+        <p>WhatsApp: +254 700 000 000</p>
+        <a href="{% url 'contact' %}">Send an inquiry</a>
+      </div>
+      <div class="footer-column">
+        <h3>Service Area</h3>
+        <p>Pickup and delivery are available mainly within nearby villages, towns, and around a 30 km radius.</p>
+        <p><strong>Delivery and availability are subject to confirmation.</strong></p>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>&copy; {% now "Y" %} Puodho. All rights reserved.</p>
+      <p>No online payments, carts, or customer accounts — just direct farm ordering.</p>
     </div>
   </footer>
+
   <script src="{% static 'farm/js/main.js' %}"></script>
   {% block scripts %}{% endblock %}
 </body>

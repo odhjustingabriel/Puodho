@@ -4,7 +4,7 @@ Puodho is a simple Django web application for a rural farm business. It helps cu
 
 ## Features
 
-- Premium, responsive public website with Home, Products, Order Assistant, About, and Contact pages.
+- Premium, responsive public website with Home, Products, Order Assistant, About Us, and Contact pages.
 - Flexible produce catalog using categories, products, and product options so Puodho can later add goats, sheep, cows, or other farm produce.
 - Guided chatbot-style order assistant built with fixed JavaScript steps, not AI.
 - Customers can order broiler chickens, eggs, or both in one request.
