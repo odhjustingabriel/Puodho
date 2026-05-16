@@ -1,0 +1,7 @@
+{% extends 'farm/base.html' %}
+{% block content %}
+<section class="dashboard-shell container">
+  <aside class="dashboard-nav"><h2>Puodho Admin</h2><a href="{% url 'dashboard_home' %}">Overview</a><a href="{% url 'dashboard_orders' %}">Orders</a><a href="{% url 'dashboard_products' %}">Products</a><a href="{% url 'admin:index' %}">Django Admin</a></aside>
+  <div class="dashboard-content">{% block dashboard_content %}{% endblock %}</div>
+</section>
+{% endblock %}
