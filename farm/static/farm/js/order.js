@@ -42,17 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
     preferredDate.min = preferredDate.min || localToday;
   }
 
-  function firstInvalidField(step) {
-    const fields = [...step.querySelectorAll('input:not([type="hidden"]), select, textarea')];
-    return fields.find(field => {
-      if (field.type === 'radio' || field.type === 'checkbox') {
-        return field.required && !step.querySelector(`input[name="${field.name}"]:checked`);
-      }
-      return field.required && !field.value;
-    });
+  function isLastStep() {
+    return current === steps.length - 1;
   }
 
-  document.querySelectorAll('.next-step').forEach(button => button.addEventListener('click', () => {
+  function goToNextStep() {
     const active = steps[current];
     const invalid = firstInvalidField(active);
     if (invalid) {
@@ -64,7 +58,33 @@ document.addEventListener('DOMContentLoaded', () => {
     current = Math.min(current + 1, steps.length - 1);
     showStep(current);
     addBubble(prompts[current - 1] || prompts[0]);
-  }));
+  }
+
+  function firstInvalidField(step) {
+    const fields = [...step.querySelectorAll('input:not([type="hidden"]), select, textarea')];
+    return fields.find(field => {
+      if (field.type === 'radio' || field.type === 'checkbox') {
+        return field.required && !step.querySelector(`input[name="${field.name}"]:checked`);
+      }
+      return field.required && !field.value;
+    });
+  }
+
+  document.querySelectorAll('.next-step').forEach(button => button.addEventListener('click', goToNextStep));
+
+  const form = document.getElementById('order-form');
+  if (form) {
+    form.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' || event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (!steps[current].contains(event.target)) return;
+      if (event.target.tagName === 'TEXTAREA') return;
+
+      if (!isLastStep()) {
+        event.preventDefault();
+        goToNextStep();
+      }
+    });
+  }
 
   productInputs.forEach(input => input.addEventListener('change', updateProductFields));
   setMinimumPreferredDate();
