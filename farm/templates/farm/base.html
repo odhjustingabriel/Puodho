@@ -1,0 +1,35 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Puodho Farm{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'farm/css/styles.css' %}">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="navbar container">
+      <a class="brand" href="{% url 'home' %}"><span class="brand-mark">P</span><span>Puodho</span></a>
+      <button class="nav-toggle" aria-label="Toggle navigation">☰</button>
+      <div class="nav-links">
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'products' %}">Products</a>
+        <a href="{% url 'order_assistant' %}">Order</a>
+        <a href="{% url 'about' %}">About</a>
+        <a href="{% url 'contact' %}">Contact</a>
+      </div>
+    </nav>
+  </header>
+  {% if messages %}<div class="messages container">{% for message in messages %}<div class="message">{{ message }}</div>{% endfor %}</div>{% endif %}
+  <main>{% block content %}{% endblock %}</main>
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div><strong>Puodho</strong><p>Fresh poultry and farm produce, ordered directly from the farm.</p></div>
+      <div><p>Delivery and availability are subject to confirmation.</p><a href="{% url 'dashboard_home' %}">Admin dashboard</a></div>
+    </div>
+  </footer>
+  <script src="{% static 'farm/js/main.js' %}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
