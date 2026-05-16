@@ -1,0 +1,22 @@
+{% extends 'farm/base.html' %}
+{% load static %}
+{% block title %}Order Assistant | Puodho{% endblock %}
+{% block content %}
+<section class="page-hero"><div class="container"><p class="eyebrow">Order assistant</p><h1>Tell Puodho what you need</h1><p>This guided assistant uses fixed questions. The farm will confirm availability and delivery or pickup details.</p></div></section>
+<section class="section container assistant-wrap">
+  <div class="chat-panel">
+    <div id="chat-log" class="chat-log"><div class="bubble farm">Karibu! Let’s prepare your Puodho order step by step.</div></div>
+    <form method="post" id="order-form" class="assistant-form" novalidate>{% csrf_token %}
+      {% if form.errors %}<div class="form-errors">Please review the highlighted fields and try again. {{ form.non_field_errors }}</div>{% endif %}
+      <div class="assistant-step active" data-step="0"><label>Your name {{ form.customer_name }}</label><button type="button" class="btn primary next-step">Next</button></div>
+      <div class="assistant-step" data-step="1"><label>Phone number {{ form.phone }}</label><label>Email (optional) {{ form.email }}</label><button type="button" class="btn primary next-step">Next</button></div>
+      <div class="assistant-step" data-step="2"><label>Location {{ form.location }}</label><label>Delivery method {{ form.delivery_method }}</label><button type="button" class="btn primary next-step">Next</button></div>
+      <div class="assistant-step" data-step="3"><p>Which products would you like?</p>{{ form.selected_products }}<button type="button" class="btn primary next-step">Next</button></div>
+      <div class="assistant-step" data-step="4"><div class="broiler-fields"><label>Broiler option {{ form.broiler_option }}</label><label>Broiler quantity {{ form.broiler_quantity }}</label></div><div class="egg-fields"><label>Egg trays {{ form.eggs_quantity }}</label></div><button type="button" class="btn primary next-step">Next</button></div>
+      <div class="assistant-step" data-step="5"><label>Preferred date {{ form.preferred_date }}</label><label>Notes (optional) {{ form.notes }}</label><button type="submit" class="btn primary">Submit Order Request</button></div>
+    </form>
+  </div>
+  <aside class="glass-card"><h2>Ordering notes</h2><ul><li>Pickup or delivery can be requested.</li><li>Nearby villages, towns, and roughly 30 km radius are prioritized.</li><li>No delivery fee is calculated online.</li><li>Puodho confirms availability before fulfillment.</li></ul></aside>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{% static 'farm/js/order.js' %}"></script>{% endblock %}
