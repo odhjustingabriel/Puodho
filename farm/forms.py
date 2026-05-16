@@ -1,6 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
+from django.utils import timezone
 
 from .models import Order, Product, ProductOption
 
@@ -8,7 +9,11 @@ from .models import Order, Product, ProductOption
 class OrderAssistantForm(forms.ModelForm):
     selected_products = forms.MultipleChoiceField(required=True, widget=forms.CheckboxSelectMultiple)
     broiler_quantity = forms.IntegerField(required=False, min_value=1)
-    broiler_option = forms.ModelChoiceField(queryset=ProductOption.objects.none(), required=False)
+    broiler_option = forms.ModelChoiceField(
+        queryset=ProductOption.objects.none(),
+        required=False,
+        widget=forms.RadioSelect,
+    )
     eggs_quantity = forms.IntegerField(required=False, min_value=1)
 
     class Meta:
@@ -19,17 +24,25 @@ class OrderAssistantForm(forms.ModelForm):
             'broiler_option', 'eggs_quantity'
         ]
         widgets = {
+            'delivery_method': forms.RadioSelect(),
             'preferred_date': forms.DateInput(attrs={'type': 'date'}),
             'notes': forms.Textarea(attrs={'rows': 3}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['preferred_date'].widget.attrs['min'] = timezone.localdate().isoformat()
         products = Product.objects.filter(is_active=True).exclude(availability_status=Product.UNAVAILABLE)
         self.fields['selected_products'].choices = [(p.slug, p.name) for p in products]
         broiler = Product.objects.filter(slug='broiler-chicken').first()
         if broiler:
             self.fields['broiler_option'].queryset = broiler.options.filter(is_active=True)
+
+    def clean_preferred_date(self):
+        preferred_date = self.cleaned_data.get('preferred_date')
+        if preferred_date and preferred_date < timezone.localdate():
+            raise ValidationError('Preferred date cannot be in the past.')
+        return preferred_date
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()

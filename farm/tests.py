@@ -66,6 +66,23 @@ class PuodhoSiteTests(TestCase):
         self.assertEqual(order.items.count(), 2)
         self.assertEqual(order.total_amount, Decimal('2650.00'))
 
+
+    def test_cannot_submit_order_with_past_preferred_date(self):
+        response = self.client.post(reverse('order_assistant'), {
+            'customer_name': 'Achieng Otieno',
+            'phone': '0712345678',
+            'email': '',
+            'location': 'Nearby village',
+            'delivery_method': 'delivery',
+            'preferred_date': (date.today() - timedelta(days=1)).isoformat(),
+            'notes': '',
+            'selected_products': ['eggs'],
+            'eggs_quantity': '1',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Preferred date cannot be in the past.')
+        self.assertEqual(Order.objects.count(), 0)
+
     def test_dashboard_requires_login(self):
         response = self.client.get(reverse('dashboard_home'))
         self.assertEqual(response.status_code, 302)
