@@ -46,6 +46,13 @@ class PuodhoSiteTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Order assistant')
 
+    def test_delivery_method_choices_do_not_include_blank_option(self):
+        response = self.client.get(reverse('order_assistant'))
+        self.assertEqual(response.status_code, 200)
+        form = response.context['form']
+        self.assertEqual(list(form.fields['delivery_method'].choices), Order.DELIVERY_CHOICES)
+        self.assertNotContains(response, '---------')
+
     def test_customer_can_submit_valid_order_and_total_is_calculated(self):
         response = self.client.post(reverse('order_assistant'), {
             'customer_name': 'Achieng Otieno',

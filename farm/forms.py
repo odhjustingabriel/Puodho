@@ -13,6 +13,7 @@ class OrderAssistantForm(forms.ModelForm):
         queryset=ProductOption.objects.none(),
         required=False,
         widget=forms.RadioSelect,
+        empty_label=None,
     )
     eggs_quantity = forms.IntegerField(required=False, min_value=1)
 
@@ -32,6 +33,7 @@ class OrderAssistantForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['preferred_date'].widget.attrs['min'] = timezone.localdate().isoformat()
+        self.fields['delivery_method'].choices = Order.DELIVERY_CHOICES
         products = Product.objects.filter(is_active=True).exclude(availability_status=Product.UNAVAILABLE)
         self.fields['selected_products'].choices = [(p.slug, p.name) for p in products]
         broiler = Product.objects.filter(slug='broiler-chicken').first()
