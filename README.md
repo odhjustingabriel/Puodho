@@ -28,20 +28,35 @@ Puodho v1 does **not** include online payments, M-Pesa, customer accounts, carts
 
 ## Setup
 
-1. Create and activate a virtual environment:
+1. Create a virtual environment:
 
    ```bash
    python -m venv .venv
+   ```
+
+2. Activate the virtual environment:
+
+   macOS/Linux:
+
+   ```bash
    source .venv/bin/activate
    ```
 
-2. Install dependencies:
+   Windows PowerShell:
+
+   ```powershell
+   .\.venv\Scripts\Activate.ps1
+   ```
+
+3. Install dependencies, including Django:
 
    ```bash
    python -m pip install -r requirements.txt
    ```
 
-3. Optional environment variables:
+   If you see `ModuleNotFoundError: No module named 'django'`, it means the active Python environment does not have Django installed yet. Run the install command above inside the activated virtual environment.
+
+4. Optional environment variables:
 
    ```bash
    export DJANGO_SECRET_KEY="replace-this-in-production"
