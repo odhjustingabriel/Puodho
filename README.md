@@ -7,7 +7,7 @@ Puodho is a simple Django web application for a rural farm business. It helps cu
 - Premium, responsive public website with Home, Products, Order Assistant, About Us, and Contact pages.
 - Flexible produce catalog using categories, products, and product options so Puodho can later add goats, sheep, cows, or other farm produce.
 - Guided chatbot-style order assistant built with fixed JavaScript steps, not AI.
-- Customers can order broiler chickens, eggs, or both in one request.
+- Customers can order broiler chickens, eggs, or both in one request; livestock and specialty milk products are listed for availability inquiries.
 - Broiler options support Alive and Prepared pricing.
 - Server-side order item and total calculations that preserve unit prices at order time.
 - Simple order references such as `PUODHO-1001`.
@@ -62,14 +62,16 @@ Seed initial Puodho products:
 python manage.py seed_puodho
 ```
 
-The seed command creates:
+The seed command creates starter catalog data for:
 
-- Category: Poultry
-- Category: Eggs
-- Product: Broiler Chicken
+- Poultry: Broiler Chicken
   - Alive, Ksh 650
   - Prepared, Ksh 750
-- Product: Eggs, Ksh 450 per tray
+- Eggs: Eggs, Ksh 450 per tray
+- Cattle: Friesian/Holstein, Ayrshire, Sahiwal, and Boran options with starter prices and age guidance
+- Goats: Galla, Boer, Saanen, and Toggenburg/Alpine options with starter prices and age guidance
+- Sheep: Dorper, Red Maasai, Blackhead Persian, and Merino options with starter prices and age guidance
+- Milk Products: Cow Milk, Goat Milk, Sheep Milk, and Bulk Milk Order, including quote-on-request options where pricing depends on availability
 
 ## Create a superuser
 

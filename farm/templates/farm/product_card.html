@@ -4,8 +4,22 @@
     <span class="status {{ product.availability_status }}">{{ product.get_availability_status_display }}</span>
     <h3>{{ product.name }}</h3>
     <p>{{ product.description }}</p>
-    <p class="price">{% if product.options.all %}{% for option in product.options.all %}{{ option.name }} Ksh {{ option.price|floatformat:0 }}{% if not forloop.last %} · {% endif %}{% endfor %}{% else %}Ksh {{ product.base_price|floatformat:0 }}{% endif %}</p>
+    <p class="price">
+      {% if product.options.all %}
+        {% for option in product.options.all %}
+          {{ option.name }} {% if option.price %}Ksh {{ option.price|floatformat:0 }}{% else %}Quote on request{% endif %}{% if not forloop.last %} · {% endif %}
+        {% endfor %}
+      {% elif product.base_price %}
+        Ksh {{ product.base_price|floatformat:0 }}
+      {% else %}
+        Quote on request
+      {% endif %}
+    </p>
     <p class="unit">Per {{ product.unit }}</p>
-    <a class="text-link" href="{% url 'order_assistant' %}">Order Now →</a>
+    {% if product.slug == 'broiler-chicken' or product.slug == 'eggs' %}
+      <a class="text-link" href="{% url 'order_assistant' %}">Order Now →</a>
+    {% else %}
+      <a class="text-link" href="{% url 'contact' %}">Inquire About Availability →</a>
+    {% endif %}
   </div>
 </article>

@@ -2,6 +2,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
+from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
 
@@ -89,6 +90,14 @@ class PuodhoSiteTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Preferred date cannot be in the past.')
         self.assertEqual(Order.objects.count(), 0)
+
+    def test_seed_command_adds_expanded_catalog(self):
+        call_command('seed_puodho')
+        self.assertTrue(Product.objects.filter(slug='cattle', options__name__icontains='Sahiwal').exists())
+        self.assertTrue(Product.objects.filter(slug='goats', options__name='Boer goat').exists())
+        self.assertTrue(Product.objects.filter(slug='sheep', options__name='Dorper sheep').exists())
+        self.assertTrue(Product.objects.filter(slug='cow-milk', base_price=Decimal('60.00')).exists())
+        self.assertTrue(Product.objects.filter(slug='bulk-milk-order', options__price=Decimal('0.00')).exists())
 
     def test_dashboard_requires_login(self):
         response = self.client.get(reverse('dashboard_home'))
