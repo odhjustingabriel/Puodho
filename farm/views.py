@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import transaction
@@ -28,42 +26,45 @@ def products(request):
     return render(request, 'farm/products.html', {'products': active_products()})
 
 
+def order_product_fields(form):
+    fields = []
+    for product in form.orderable_products:
+        quantity_field = form[form.quantity_field_name(product)]
+        option_name = form.option_field_name(product)
+        fields.append({
+            'product': product,
+            'quantity_field': quantity_field,
+            'option_field': form[option_name] if option_name in form.fields else None,
+        })
+    return fields
+
+
 @transaction.atomic
 def order_assistant(request):
-    products = list(active_products())
     if request.method == 'POST':
         form = OrderAssistantForm(request.POST)
         if form.is_valid():
             order = form.save(commit=False)
             order.status = Order.PENDING
             order.save()
-            selected = form.cleaned_data['selected_products']
-            if 'broiler-chicken' in selected:
-                product = Product.objects.get(slug='broiler-chicken', is_active=True)
-                option = form.cleaned_data['broiler_option']
-                qty = form.cleaned_data['broiler_quantity']
+            for product_id in form.cleaned_data['selected_products']:
+                product = form.products_by_id[str(product_id)]
+                quantity = form.cleaned_data[form.quantity_field_name(product)]
+                option_field = form.option_field_name(product)
+                option = form.cleaned_data.get(option_field) if option_field in form.fields else None
+                unit_price = option.price if option else product.base_price
                 OrderItem.objects.create(
                     order=order,
                     product=product,
                     product_option=option,
-                    quantity=qty,
-                    unit_price=option.price,
-                    line_total=option.price * qty,
-                )
-            if 'eggs' in selected:
-                product = Product.objects.get(slug='eggs', is_active=True)
-                qty = form.cleaned_data['eggs_quantity']
-                OrderItem.objects.create(
-                    order=order,
-                    product=product,
-                    quantity=qty,
-                    unit_price=product.base_price,
-                    line_total=product.base_price * qty,
+                    quantity=quantity,
+                    unit_price=unit_price,
+                    line_total=unit_price * quantity,
                 )
             return redirect(reverse('order_success', kwargs={'reference': order.order_reference}))
     else:
         form = OrderAssistantForm()
-    return render(request, 'farm/order.html', {'form': form, 'products': products})
+    return render(request, 'farm/order.html', {'form': form, 'order_product_fields': order_product_fields(form)})
 
 
 def order_success(request, reference):

@@ -16,10 +16,6 @@
       {% endif %}
     </p>
     <p class="unit">Per {{ product.unit }}</p>
-    {% if product.slug == 'broiler-chicken' or product.slug == 'eggs' %}
-      <a class="text-link" href="{% url 'order_assistant' %}">Order Now →</a>
-    {% else %}
-      <a class="text-link" href="{% url 'contact' %}">Inquire About Availability →</a>
-    {% endif %}
+    <a class="text-link" href="{% url 'order_assistant' %}">Order / Inquire Now →</a>
   </div>
 </article>

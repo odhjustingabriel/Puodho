@@ -8,21 +8,12 @@ from .models import Order, Product, ProductOption
 
 class OrderAssistantForm(forms.ModelForm):
     selected_products = forms.MultipleChoiceField(required=True, widget=forms.CheckboxSelectMultiple)
-    broiler_quantity = forms.IntegerField(required=False, min_value=1)
-    broiler_option = forms.ModelChoiceField(
-        queryset=ProductOption.objects.none(),
-        required=False,
-        widget=forms.RadioSelect,
-        empty_label=None,
-    )
-    eggs_quantity = forms.IntegerField(required=False, min_value=1)
 
     class Meta:
         model = Order
         fields = [
             'customer_name', 'phone', 'email', 'location', 'delivery_method',
-            'preferred_date', 'notes', 'selected_products', 'broiler_quantity',
-            'broiler_option', 'eggs_quantity'
+            'preferred_date', 'notes', 'selected_products'
         ]
         widgets = {
             'delivery_method': forms.RadioSelect(),
@@ -34,14 +25,42 @@ class OrderAssistantForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['preferred_date'].widget.attrs['min'] = timezone.localdate().isoformat()
         self.fields['delivery_method'].choices = Order.DELIVERY_CHOICES
-        products = Product.objects.filter(
-            is_active=True,
-            slug__in=['broiler-chicken', 'eggs'],
-        ).exclude(availability_status=Product.UNAVAILABLE)
-        self.fields['selected_products'].choices = [(p.slug, p.name) for p in products]
-        broiler = Product.objects.filter(slug='broiler-chicken').first()
-        if broiler:
-            self.fields['broiler_option'].queryset = broiler.options.filter(is_active=True)
+        self.orderable_products = list(
+            Product.objects.filter(is_active=True)
+            .exclude(availability_status=Product.UNAVAILABLE)
+            .select_related('category')
+            .prefetch_related('options')
+            .order_by('category__name', 'name')
+        )
+        self.products_by_id = {str(product.pk): product for product in self.orderable_products}
+        self.fields['selected_products'].choices = [(str(product.pk), product.name) for product in self.orderable_products]
+
+        for product in self.orderable_products:
+            quantity_field = self.quantity_field_name(product)
+            self.fields[quantity_field] = forms.IntegerField(
+                required=False,
+                min_value=1,
+                label=f'{product.name} quantity',
+                widget=forms.NumberInput(attrs={'min': 1}),
+            )
+            options = product.options.filter(is_active=True)
+            if options.exists():
+                option_field = self.option_field_name(product)
+                self.fields[option_field] = forms.ModelChoiceField(
+                    queryset=options,
+                    required=False,
+                    widget=forms.RadioSelect(),
+                    empty_label=None,
+                    label=f'{product.name} option',
+                )
+
+    @staticmethod
+    def quantity_field_name(product):
+        return f'product_{product.pk}_quantity'
+
+    @staticmethod
+    def option_field_name(product):
+        return f'product_{product.pk}_option'
 
     def clean_preferred_date(self):
         preferred_date = self.cleaned_data.get('preferred_date')
@@ -58,15 +77,23 @@ class OrderAssistantForm(forms.ModelForm):
     def clean(self):
         cleaned = super().clean()
         selected = cleaned.get('selected_products') or []
-        if 'broiler-chicken' in selected:
-            if not cleaned.get('broiler_quantity'):
-                self.add_error('broiler_quantity', 'Enter a broiler chicken quantity.')
-            if not cleaned.get('broiler_option'):
-                self.add_error('broiler_option', 'Choose Alive or Prepared for broiler chicken.')
-        if 'eggs' in selected and not cleaned.get('eggs_quantity'):
-            self.add_error('eggs_quantity', 'Enter an eggs quantity.')
         if not selected:
             self.add_error('selected_products', 'Choose at least one product.')
+            return cleaned
+
+        for product_id in selected:
+            product = self.products_by_id.get(str(product_id))
+            if not product:
+                self.add_error('selected_products', 'One of the selected products is no longer available.')
+                continue
+
+            quantity_field = self.quantity_field_name(product)
+            if not cleaned.get(quantity_field):
+                self.add_error(quantity_field, f'Enter a quantity for {product.name}.')
+
+            option_field = self.option_field_name(product)
+            if option_field in self.fields and not cleaned.get(option_field):
+                self.add_error(option_field, f'Choose an option for {product.name}.')
         return cleaned
 
 

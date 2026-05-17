@@ -6,12 +6,12 @@
   <div class="container">
     <p class="eyebrow">Order assistant</p>
     <h1>Tell Puodho what you need</h1>
-    <p>This guided assistant uses fixed questions. The farm will confirm availability and delivery or pickup details.</p>
+    <p>This guided assistant now supports poultry, eggs, livestock, and milk product requests. Puodho will confirm availability, pricing, and delivery or pickup details.</p>
   </div>
 </section>
 <section class="section container assistant-wrap">
   <div class="chat-panel">
-    <div id="chat-log" class="chat-log"><div class="bubble farm">Karibu! Let’s prepare your Puodho order step by step.</div></div>
+    <div id="chat-log" class="chat-log"><div class="bubble farm">Karibu! Let’s prepare your Puodho farm order or inquiry step by step.</div></div>
     <form method="post" id="order-form" class="assistant-form" novalidate>{% csrf_token %}
       {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
 
@@ -55,6 +55,7 @@
       <div class="assistant-step" data-step="3">
         <div class="field-group choice-field{% if form.selected_products.errors %} has-error{% endif %}">
           <span class="field-label">Which products would you like?</span>
+          <p class="field-help">Choose any available produce, livestock, or milk product. Items marked quote-on-request will be confirmed by Puodho before fulfillment.</p>
           {{ form.selected_products }}
           {% for error in form.selected_products.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
         </div>
@@ -62,24 +63,29 @@
       </div>
 
       <div class="assistant-step" data-step="4">
-        <div class="broiler-fields">
-          <div class="field-group choice-field{% if form.broiler_option.errors %} has-error{% endif %}">
-            <span class="field-label">Broiler option</span>
-            {{ form.broiler_option }}
-            {% for error in form.broiler_option.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
-          </div>
-          <div class="field-group{% if form.broiler_quantity.errors %} has-error{% endif %}">
-            <label for="{{ form.broiler_quantity.id_for_label }}">Broiler quantity</label>
-            {{ form.broiler_quantity }}
-            {% for error in form.broiler_quantity.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
-          </div>
-        </div>
-        <div class="egg-fields">
-          <div class="field-group{% if form.eggs_quantity.errors %} has-error{% endif %}">
-            <label for="{{ form.eggs_quantity.id_for_label }}">Egg trays</label>
-            {{ form.eggs_quantity }}
-            {% for error in form.eggs_quantity.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
-          </div>
+        <div class="product-request-grid">
+          {% for item in order_product_fields %}
+            <section class="product-detail" data-product-id="{{ item.product.pk }}">
+              <div class="product-detail-heading">
+                <h3>{{ item.product.name }}</h3>
+                <span class="status {{ item.product.availability_status }}">{{ item.product.get_availability_status_display }}</span>
+              </div>
+              <p>{{ item.product.description }}</p>
+              <p class="unit">Unit: {{ item.product.unit }}. Delivery and availability are subject to confirmation.</p>
+              {% if item.option_field %}
+                <div class="field-group choice-field{% if item.option_field.errors %} has-error{% endif %}">
+                  <span class="field-label">Choose option</span>
+                  {{ item.option_field }}
+                  {% for error in item.option_field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+                </div>
+              {% endif %}
+              <div class="field-group{% if item.quantity_field.errors %} has-error{% endif %}">
+                <label for="{{ item.quantity_field.id_for_label }}">Quantity</label>
+                {{ item.quantity_field }}
+                {% for error in item.quantity_field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+              </div>
+            </section>
+          {% endfor %}
         </div>
         <button type="button" class="btn primary next-step">Next</button>
       </div>
@@ -95,11 +101,11 @@
           {{ form.notes }}
           {% for error in form.notes.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
         </div>
-        <button type="submit" class="btn primary">Submit Order Request</button>
+        <button type="submit" class="btn primary">Submit Request</button>
       </div>
     </form>
   </div>
-  <aside class="glass-card"><h2>Ordering notes</h2><ul><li>Pickup or delivery can be requested.</li><li>Nearby villages, towns, and roughly 30 km radius are prioritized.</li><li>No delivery fee is calculated online.</li><li>Puodho confirms availability before fulfillment.</li></ul></aside>
+  <aside class="glass-card"><h2>Ordering notes</h2><ul><li>Broilers, eggs, livestock, and milk requests can be captured here.</li><li>Nearby villages, towns, and roughly 30 km radius are prioritized.</li><li>No delivery fee is calculated online.</li><li>Puodho confirms availability, age/option details, and final price before fulfillment.</li></ul></aside>
 </section>
 {% endblock %}
 {% block scripts %}<script src="{% static 'farm/js/order.js' %}"></script>{% endblock %}

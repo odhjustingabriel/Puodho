@@ -7,7 +7,7 @@ Puodho is a simple Django web application for a rural farm business. It helps cu
 - Premium, responsive public website with Home, Products, Order Assistant, About Us, and Contact pages.
 - Flexible produce catalog using categories, products, and product options so Puodho can later add goats, sheep, cows, or other farm produce.
 - Guided chatbot-style order assistant built with fixed JavaScript steps, not AI.
-- Customers can order broiler chickens, eggs, or both in one request; livestock and specialty milk products are listed for availability inquiries.
+- Customers can submit guided requests for broiler chickens, eggs, livestock, milk products, or mixed farm produce in one request.
 - Broiler options support Alive and Prepared pricing.
 - Server-side order item and total calculations that preserve unit prices at order time.
 - Simple order references such as `PUODHO-1001`.

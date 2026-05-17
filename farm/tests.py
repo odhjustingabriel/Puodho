@@ -63,10 +63,10 @@ class PuodhoSiteTests(TestCase):
             'delivery_method': 'delivery',
             'preferred_date': (date.today() + timedelta(days=1)).isoformat(),
             'notes': 'Call before delivery.',
-            'selected_products': ['broiler-chicken', 'eggs'],
-            'broiler_option': str(self.alive.pk),
-            'broiler_quantity': '2',
-            'eggs_quantity': '3',
+            'selected_products': [str(self.broiler.pk), str(self.eggs.pk)],
+            f'product_{self.broiler.pk}_option': str(self.alive.pk),
+            f'product_{self.broiler.pk}_quantity': '2',
+            f'product_{self.eggs.pk}_quantity': '3',
         })
         order = Order.objects.get()
         self.assertRedirects(response, reverse('order_success', kwargs={'reference': order.order_reference}))
@@ -74,6 +74,37 @@ class PuodhoSiteTests(TestCase):
         self.assertEqual(order.items.count(), 2)
         self.assertEqual(order.total_amount, Decimal('2650.00'))
 
+    def test_customer_can_submit_livestock_request_with_option(self):
+        goats_category = Category.objects.create(name='Goats')
+        goat = Product.objects.create(
+            category=goats_category,
+            name='Goats',
+            slug='goats',
+            description='Hardy meat and dairy goats.',
+            unit='goat',
+            base_price=Decimal('12000.00'),
+            availability_status=Product.LIMITED,
+        )
+        boer = ProductOption.objects.create(product=goat, name='Boer goat', price=Decimal('30000.00'))
+
+        response = self.client.post(reverse('order_assistant'), {
+            'customer_name': 'Achieng Otieno',
+            'phone': '0712345678',
+            'email': '',
+            'location': 'Nearby village',
+            'delivery_method': 'pickup',
+            'preferred_date': (date.today() + timedelta(days=2)).isoformat(),
+            'notes': 'Interested in a healthy young buck.',
+            'selected_products': [str(goat.pk)],
+            f'product_{goat.pk}_option': str(boer.pk),
+            f'product_{goat.pk}_quantity': '1',
+        })
+        order = Order.objects.get()
+        self.assertRedirects(response, reverse('order_success', kwargs={'reference': order.order_reference}))
+        item = order.items.get()
+        self.assertEqual(item.product, goat)
+        self.assertEqual(item.product_option, boer)
+        self.assertEqual(order.total_amount, Decimal('30000.00'))
 
     def test_cannot_submit_order_with_past_preferred_date(self):
         response = self.client.post(reverse('order_assistant'), {
@@ -84,8 +115,8 @@ class PuodhoSiteTests(TestCase):
             'delivery_method': 'delivery',
             'preferred_date': (date.today() - timedelta(days=1)).isoformat(),
             'notes': '',
-            'selected_products': ['eggs'],
-            'eggs_quantity': '1',
+            'selected_products': [str(self.eggs.pk)],
+            f'product_{self.eggs.pk}_quantity': '1',
         })
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Preferred date cannot be in the past.')
