@@ -1,3 +1,17 @@
 {% extends 'farm/base.html' %}
 {% block title %}Contact | Puodho{% endblock %}
-{% block content %}<section class="page-hero"><div class="container"><p class="eyebrow">Contact</p><h1>Talk to Puodho</h1><p>Use the order assistant for structured orders, or reach out for general questions.</p></div></section><section class="section container contact-grid"><div class="glass-card"><h2>Farm contacts</h2><p>Phone: +254 700 000 000</p><p>WhatsApp: +254 700 000 000</p><p>Service area: nearby villages, towns, and around a 30 km radius. Farther requests may be considered later.</p></div><form method="post" class="contact-form">{% csrf_token %}<input name="name" placeholder="Your name" required><input name="phone" placeholder="Phone number" required><textarea name="message" placeholder="Your message" rows="5" required></textarea><button class="btn primary" type="submit">Send Inquiry</button></form></section>{% endblock %}
+{% block content %}
+<section class="page-hero"><div class="container"><p class="eyebrow">Contact</p><h1>Talk to Puodho</h1><p>Use the order assistant for structured orders, or reach out for general questions.</p></div></section>
+<section class="section container contact-grid">
+  <div class="glass-card"><h2>Farm contacts</h2><p>Phone: +254 700 000 000</p><p>WhatsApp: +254 700 000 000</p><p>Service area: nearby villages, towns, and around a 30 km radius. Farther requests may be considered later.</p></div>
+  <form method="post" class="contact-form">{% csrf_token %}
+    <label for="{{ contact_form.name.id_for_label }}">Your name</label>{{ contact_form.name }}
+    {% for error in contact_form.name.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+    <label for="{{ contact_form.phone.id_for_label }}">Phone number</label>{{ contact_form.phone }}
+    {% for error in contact_form.phone.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+    <label for="{{ contact_form.message.id_for_label }}">Your message</label>{{ contact_form.message }}
+    {% for error in contact_form.message.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+    <button class="btn primary" type="submit">Send Inquiry</button>
+  </form>
+</section>
+{% endblock %}

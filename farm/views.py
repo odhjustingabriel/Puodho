@@ -5,7 +5,7 @@ from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
-from .forms import OrderAssistantForm, OrderStatusForm, ProductForm, ProductOptionFormSet
+from .forms import ContactInquiryForm, OrderAssistantForm, OrderStatusForm, ProductForm, ProductOptionFormSet
 from .models import Order, OrderItem, Product
 
 
@@ -78,9 +78,13 @@ def about(request):
 
 def contact(request):
     if request.method == 'POST':
-        messages.success(request, 'Thank you. Puodho will review your message and contact you soon.')
-        return redirect('contact')
-    return render(request, 'farm/contact.html')
+        form = ContactInquiryForm(request.POST)
+        if form.is_valid():
+            messages.success(request, 'Thank you. Puodho will review your message and contact you soon.')
+            return redirect('contact')
+    else:
+        form = ContactInquiryForm()
+    return render(request, 'farm/contact.html', {'contact_form': form})
 
 
 @staff_required

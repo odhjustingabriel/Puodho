@@ -122,3 +122,35 @@ The tests cover public pages, valid order submission, order reference creation, 
 ## Notes for farm operations
 
 Delivery is mainly for nearby villages, towns, and roughly a 30 km radius. The website does not automatically calculate delivery fees. Customers are told that delivery and availability are subject to confirmation.
+
+## Security hardening
+
+- Request rate limiting is enabled globally and stricter on authentication routes.
+- Login/auth endpoints are limited to 5 attempts per 15 minutes per client IP.
+- Upload/request payload limits are configured in Django settings to reduce oversized payload abuse.
+- Forms sanitize and validate user input (phone formats, text lengths, required fields).
+- Keep `DJANGO_SECRET_KEY` in environment variables for deployment; do not commit production secrets.
+
+## OWASP Top 10 coverage
+
+- **A01 Broken Access Control:** Staff dashboard routes are protected with `login_required` + staff checks; CSRF middleware enabled.
+- **A02 Cryptographic Failures:** Secret key is environment-driven for non-debug; secure-cookie and transport-related settings are hardened for production.
+- **A03 Injection:** Inputs are validated/sanitized through Django forms and field validators; malformed data is rejected.
+- **A04 Insecure Design:** Guided, constrained assistant uses fixed controlled inputs and server-side validation for product/quantity/option logic.
+- **A05 Security Misconfiguration:** Added production guardrails for secret key and shared cache requirement, security headers, upload limits, and proxy handling controls.
+- **A06 Vulnerable/Outdated Components:** Dependency pinning remains in `requirements.txt`; regularly update Django and run `pip audit` in CI/CD.
+- **A07 Identification and Authentication Failures:** Added auth-route rate limiting and username lockout window controls.
+- **A08 Software and Data Integrity Failures:** No dynamic code loading; prefer signed releases and lockfiles in deployment pipeline.
+- **A09 Security Logging and Monitoring Failures:** Added dedicated `farm.security` logger to capture throttling/security events to `security.log`.
+- **A10 SSRF:** No outbound URL fetch features are implemented in the current app; avoid introducing unrestricted server-side URL fetches.
+
+## Full security measures implemented
+
+- Global request rate limiting and stricter auth rate limits (5 attempts / 15 min) including username lockout window controls.
+- Trusted-proxy-aware IP extraction logic for throttling; only honors `X-Forwarded-For` from configured proxy IPs.
+- Payload hard limits (`DATA_UPLOAD_MAX_*`, `FILE_UPLOAD_MAX_MEMORY_SIZE`) to mitigate oversized/malformed requests.
+- Contact form sanitization/validation and stricter order form sanitization (trimmed fields, regex phone validation, bounded lengths).
+- Security headers and cookie hardening defaults for production-oriented deployment (`X_FRAME_OPTIONS`, `SECURE_*`, `SESSION_COOKIE_*`, `CSRF_COOKIE_*`).
+- Secret handling moved to environment variables for deployment safety; no production secrets are committed.
+- Security event logging (`farm.security`) for rate limit and abuse monitoring.
+

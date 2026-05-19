@@ -1,4 +1,5 @@
 from django import forms
+from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
 from django.utils import timezone
@@ -68,10 +69,22 @@ class OrderAssistantForm(forms.ModelForm):
             raise ValidationError('Preferred date cannot be in the past.')
         return preferred_date
 
+    def clean_customer_name(self):
+        return self.cleaned_data.get('customer_name', '').strip()[:160]
+
+    def clean_location(self):
+        return self.cleaned_data.get('location', '').strip()[:220]
+
+    def clean_notes(self):
+        return self.cleaned_data.get('notes', '').strip()[:2000]
+
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
         if not phone:
             raise ValidationError('Phone number is required so the farm can confirm your order.')
+        if len(phone) > 40:
+            raise ValidationError('Phone number is too long.')
+        RegexValidator(r'^[0-9+()\-\s]{7,40}$', 'Enter a valid phone number.')(phone)
         return phone
 
     def clean(self):
@@ -95,6 +108,22 @@ class OrderAssistantForm(forms.ModelForm):
             if option_field in self.fields and not cleaned.get(option_field):
                 self.add_error(option_field, f'Choose an option for {product.name}.')
         return cleaned
+
+
+
+class ContactInquiryForm(forms.Form):
+    name = forms.CharField(max_length=120)
+    phone = forms.CharField(max_length=40, validators=[RegexValidator(r'^[0-9+()\-\s]{7,40}$', 'Enter a valid phone number.')])
+    message = forms.CharField(max_length=1500, widget=forms.Textarea(attrs={'rows': 5}))
+
+    def clean_name(self):
+        return self.cleaned_data['name'].strip()
+
+    def clean_phone(self):
+        return self.cleaned_data['phone'].strip()
+
+    def clean_message(self):
+        return self.cleaned_data['message'].strip()
 
 
 class OrderStatusForm(forms.ModelForm):

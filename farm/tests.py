@@ -3,9 +3,10 @@ from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from .middleware import RateLimitMiddleware
 from .models import Category, Order, Product, ProductOption
 
 
@@ -130,13 +131,52 @@ class PuodhoSiteTests(TestCase):
         self.assertTrue(Product.objects.filter(slug='cow-milk', base_price=Decimal('60.00')).exists())
         self.assertTrue(Product.objects.filter(slug='bulk-milk-order', options__price=Decimal('0.00')).exists())
 
+
+    def test_contact_rejects_malformed_phone(self):
+        response = self.client.post(reverse('contact'), {
+            'name': 'Achieng',
+            'phone': 'bad@@@',
+            'message': 'hello',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Enter a valid phone number.')
+
+    def test_auth_rate_limit_after_five_attempts(self):
+        old_limit = RateLimitMiddleware.AUTH_LIMIT
+        old_window = RateLimitMiddleware.WINDOW_SECONDS
+        try:
+            RateLimitMiddleware.AUTH_LIMIT = 5
+            RateLimitMiddleware.WINDOW_SECONDS = 900
+            for _ in range(5):
+                self.client.post(reverse('login'), {'username': 'x', 'password': 'y'})
+            blocked = self.client.post(reverse('login'), {'username': 'x', 'password': 'y'})
+            self.assertEqual(blocked.status_code, 429)
+        finally:
+            RateLimitMiddleware.AUTH_LIMIT = old_limit
+            RateLimitMiddleware.WINDOW_SECONDS = old_window
+
+
+    def test_auth_rate_limit_by_username(self):
+        old_limit = RateLimitMiddleware.AUTH_USER_LIMIT
+        old_window = RateLimitMiddleware.WINDOW_SECONDS
+        try:
+            RateLimitMiddleware.AUTH_USER_LIMIT = 5
+            RateLimitMiddleware.WINDOW_SECONDS = 900
+            for _ in range(5):
+                self.client.post(reverse('login'), {'username': 'target-user', 'password': 'bad'})
+            blocked = self.client.post(reverse('login'), {'username': 'target-user', 'password': 'bad'})
+            self.assertEqual(blocked.status_code, 429)
+        finally:
+            RateLimitMiddleware.AUTH_USER_LIMIT = old_limit
+            RateLimitMiddleware.WINDOW_SECONDS = old_window
+
     def test_dashboard_requires_login(self):
         response = self.client.get(reverse('dashboard_home'))
         self.assertEqual(response.status_code, 302)
         self.assertIn('/accounts/login/', response['Location'])
 
     def test_staff_user_can_access_dashboard(self):
-        staff = User.objects.create_user(username='staff', password='pass12345', is_staff=True)
+        staff = User.objects.create_user(username='staff', password='staff_test_password_123', is_staff=True)
         self.client.force_login(staff)
         response = self.client.get(reverse('dashboard_home'))
         self.assertEqual(response.status_code, 200)
