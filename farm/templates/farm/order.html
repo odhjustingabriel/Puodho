@@ -1,0 +1,111 @@
+{% extends 'farm/base.html' %}
+{% load static %}
+{% block title %}Order Assistant | Puodho{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container">
+    <p class="eyebrow">Order assistant</p>
+    <h1>Tell Puodho what you need</h1>
+    <p>This guided assistant now supports poultry, eggs, livestock, and milk product requests. Puodho will confirm availability, pricing, and delivery or pickup details.</p>
+  </div>
+</section>
+<section class="section container assistant-wrap">
+  <div class="chat-panel">
+    <div id="chat-log" class="chat-log"><div class="bubble farm">Karibu! Let’s prepare your Puodho farm order or inquiry step by step.</div></div>
+    <form method="post" id="order-form" class="assistant-form" novalidate>{% csrf_token %}
+      {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+      <div class="assistant-step active" data-step="0">
+        <div class="field-group{% if form.customer_name.errors %} has-error{% endif %}">
+          <label for="{{ form.customer_name.id_for_label }}">Your name</label>
+          {{ form.customer_name }}
+          {% for error in form.customer_name.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        </div>
+        <button type="button" class="btn primary next-step">Next</button>
+      </div>
+
+      <div class="assistant-step" data-step="1">
+        <div class="field-group{% if form.phone.errors %} has-error{% endif %}">
+          <label for="{{ form.phone.id_for_label }}">Phone number</label>
+          {{ form.phone }}
+          {% for error in form.phone.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="field-group{% if form.email.errors %} has-error{% endif %}">
+          <label for="{{ form.email.id_for_label }}">Email (optional)</label>
+          {{ form.email }}
+          {% for error in form.email.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        </div>
+        <button type="button" class="btn primary next-step">Next</button>
+      </div>
+
+      <div class="assistant-step" data-step="2">
+        <div class="field-group{% if form.location.errors %} has-error{% endif %}">
+          <label for="{{ form.location.id_for_label }}">Location</label>
+          {{ form.location }}
+          {% for error in form.location.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="field-group choice-field{% if form.delivery_method.errors %} has-error{% endif %}">
+          <span class="field-label">Delivery method</span>
+          {{ form.delivery_method }}
+          {% for error in form.delivery_method.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        </div>
+        <button type="button" class="btn primary next-step">Next</button>
+      </div>
+
+      <div class="assistant-step" data-step="3">
+        <div class="field-group choice-field{% if form.selected_products.errors %} has-error{% endif %}">
+          <span class="field-label">Which products would you like?</span>
+          <p class="field-help">Choose any available produce, livestock, or milk product. Items marked quote-on-request will be confirmed by Puodho before fulfillment.</p>
+          {{ form.selected_products }}
+          {% for error in form.selected_products.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        </div>
+        <button type="button" class="btn primary next-step">Next</button>
+      </div>
+
+      <div class="assistant-step" data-step="4">
+        <div class="product-request-grid">
+          {% for item in order_product_fields %}
+            <section class="product-detail" data-product-id="{{ item.product.pk }}">
+              <div class="product-detail-heading">
+                <h3>{{ item.product.name }}</h3>
+                <span class="status {{ item.product.availability_status }}">{{ item.product.get_availability_status_display }}</span>
+              </div>
+              <p>{{ item.product.description }}</p>
+              <p class="unit">Unit: {{ item.product.unit }}. Delivery and availability are subject to confirmation.</p>
+              {% if item.option_field %}
+                <div class="field-group choice-field{% if item.option_field.errors %} has-error{% endif %}">
+                  <span class="field-label">Choose option</span>
+                  {{ item.option_field }}
+                  {% for error in item.option_field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+                </div>
+              {% endif %}
+              <div class="field-group{% if item.quantity_field.errors %} has-error{% endif %}">
+                <label for="{{ item.quantity_field.id_for_label }}">Quantity</label>
+                {{ item.quantity_field }}
+                {% for error in item.quantity_field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+              </div>
+            </section>
+          {% endfor %}
+        </div>
+        <button type="button" class="btn primary next-step">Next</button>
+      </div>
+
+      <div class="assistant-step" data-step="5">
+        <div class="field-group{% if form.preferred_date.errors %} has-error{% endif %}">
+          <label for="{{ form.preferred_date.id_for_label }}">Preferred date</label>
+          {{ form.preferred_date }}
+          {% for error in form.preferred_date.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="field-group{% if form.notes.errors %} has-error{% endif %}">
+          <label for="{{ form.notes.id_for_label }}">Notes (optional)</label>
+          {{ form.notes }}
+          {% for error in form.notes.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        </div>
+        <button type="submit" class="btn primary">Submit Request</button>
+      </div>
+    </form>
+  </div>
+  <aside class="glass-card"><h2>Ordering notes</h2><ul><li>Broilers, eggs, livestock, and milk requests can be captured here.</li><li>Nearby villages, towns, and roughly 30 km radius are prioritized.</li><li>No delivery fee is calculated online.</li><li>Puodho confirms availability, age/option details, and final price before fulfillment.</li></ul></aside>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{% static 'farm/js/order.js' %}"></script>{% endblock %}
