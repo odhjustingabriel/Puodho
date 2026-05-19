@@ -1,0 +1,5 @@
+{% extends 'farm/base.html' %}
+{% block title %}Order Received | Puodho{% endblock %}
+{% block content %}
+<section class="section container success-card"><p class="eyebrow">Order received</p><h1>Thank you, {{ order.customer_name }}.</h1><p>Your order reference is <strong>{{ order.order_reference }}</strong>.</p><p>Puodho will confirm availability and your {{ order.get_delivery_method_display|lower }} details before fulfillment.</p><h2>Order summary</h2><ul class="summary-list">{% for item in order.items.all %}<li>{{ item.quantity }} × {{ item.product.name }}{% if item.product_option %} ({{ item.product_option.name }}){% endif %} — Ksh {{ item.line_total|floatformat:0 }}</li>{% endfor %}</ul><p class="price">Estimated total: Ksh {{ order.total_amount|floatformat:0 }}</p><a class="btn primary" href="https://wa.me/254700000000">WhatsApp fallback</a><a class="btn secondary" href="{% url 'products' %}">Back to products</a></section>
+{% endblock %}

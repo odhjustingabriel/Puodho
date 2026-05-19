@@ -1,0 +1,6 @@
+{% extends 'farm/base.html' %}
+{% block title %}Products | Puodho{% endblock %}
+{% block content %}
+<section class="page-hero"><div class="container"><p class="eyebrow">Products</p><h1>Browse Puodho produce</h1><p>Prices are saved when you order. Delivery and availability are subject to confirmation.</p></div></section>
+<section class="section container"><div class="product-grid">{% for product in products %}{% include 'farm/product_card.html' %}{% empty %}<p>No products yet. Please check back soon.</p>{% endfor %}</div></section>
+{% endblock %}
